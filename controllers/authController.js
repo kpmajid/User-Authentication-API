@@ -1,5 +1,7 @@
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
+import { jwtSecret } from "../config/auth.config.js";
 import User from "../models/User.js";
 
 const register = async (req, res) => {
@@ -44,8 +46,40 @@ const register = async (req, res) => {
     });
   } catch (error) {
     console.error(error.message);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: error.message });
   }
 };
 
-export { register };
+const login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(400).send({ message: "Invalid username or password" });
+    }
+
+    const isValidPassword = await bcrypt.compare(password, user.password);
+    if (!isValidPassword) {
+      return res.status(400).send({ message: "Invalid username or password" });
+    }
+
+    const token = jwt.sign({ id: user._id }, jwtSecret, { expiresIn: "1h" });
+    res.cookie("jwt", token, { httpOnly: true, maxAge: 60 * 60 * 1000 });
+
+    res.json({
+      success: true,
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        fullName: user.fullName,
+      },
+    });
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export { register, login };
