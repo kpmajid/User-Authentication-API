@@ -10,8 +10,6 @@ const search = async (req, res) => {
 
     const users = await User.find(filter).select("-password");
 
-    console.log(users);
-
     res.send(users);
   } catch (error) {
     res.status(400).send({ message: error.message });

@@ -4,7 +4,8 @@ import { jwtSecret } from "../config/auth.config.js";
 
 const verifyToken = async (req, res, next) => {
   const authHeader = req.headers.authorization;
-  const token = authHeader.split(" ")[1];
+
+  const token = authHeader?.split(" ")[1];
 
   if (!token) {
     return res.status(401).send({ message: "No token provided" });
